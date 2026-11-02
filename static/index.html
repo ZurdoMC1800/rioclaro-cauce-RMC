@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Río Claro · Cauce</title>
+<style>
+:root{--bg:#f4f1ea;--card:#fff;--ink:#14213d;--mut:#5b6478;--acc:#0b7a75;--sun:#f2a541;--bad:#c0392b;--ok:#2e8b57;--line:#e3ded2}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--ink);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--sun));display:grid;place-items:center;font-weight:800}
+header small{opacity:.7;display:block;font-size:12px}.sp{flex:1}
+nav{display:flex;gap:6px;padding:10px 20px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line)}
+nav button{border:0;background:none;padding:8px 14px;border-radius:20px;font:inherit;cursor:pointer;color:var(--mut);white-space:nowrap}
+nav button.on{background:var(--ink);color:#fff}main{max-width:1050px;margin:0 auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.k{font-size:26px;font-weight:800}.l{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.red{border-top:4px solid var(--bad)}.amb{border-top:4px solid var(--sun)}.grn{border-top:4px solid var(--ok)}
+h2{margin:22px 0 10px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;margin:4px 0 10px}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.chat{height:380px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:6px}
+.m{max-width:85%;padding:10px 14px;border-radius:14px}.u{align-self:flex-end;background:var(--ink);color:#fff}
+.b{align-self:flex-start;background:#eef6f5;border:1px solid #cfe4e2}.b em{display:block;font-size:12px;color:var(--mut);margin-top:6px;font-style:normal}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.chips span{background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+.tw{overflow-x:auto}.tag{padding:2px 9px;border-radius:12px;font-size:12px;background:#eee}
+.t-Vencido,.t-Retrasado,.t-Bloqueada{background:#fadbd8}.t-Pagado,.t-Entregado{background:#d5f0e0}.t-Pendiente{background:#fdebd0}
+.warn{background:#fff6e0;border:1px solid #f0d58a;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px}
+#login{max-width:380px;margin:8vh auto}.hide{display:none}
+@media(max-width:600px){main{padding:12px}.k{font-size:22px}}
+</style></head><body>
+<header><div class="logo">RC</div><div>Río Claro · Cauce<small>Atención y operación con IA</small></div><div class="sp"></div><div id="who" style="text-align:right;font-size:13px"></div><button class="btn alt hide" id="out" style="padding:6px 12px">Salir</button></header>
+
+<div id="login" class="card"><h2 style="margin-top:0">Acceso por persona</h2>
+<div class="warn">Piloto con datos ficticios. Usuarios: ernesto, laura, mariana, toño, carlos · clave: <b>Cauce2026!</b></div>
+<label>Usuario</label><input id="lu" value="toño" autocomplete="username"><label>Clave</label><input id="lc" type="password" value="Cauce2026!">
+<button class="btn" style="width:100%" onclick="login()">Entrar</button><p id="le" style="color:var(--bad)"></p></div>
+
+<div id="app" class="hide"><nav id="nav"></nav><main>
+<section id="resumen"></section>
+<section id="asistente" class="hide"><div class="warn">🤖 Hablas con una <b>IA</b>. Cada respuesta indica su fuente y las decisiones con dinero las aprueba una persona.</div>
+<div class="card"><div class="chat" id="chat"><div class="m b">Hola, soy Cauce, el asistente de Río Claro. Pregúntame por inventario, entregas, facturas o quejas, escribiendo o por voz.</div></div>
+<div class="chips" id="chips"></div>
+<div style="display:flex;gap:8px"><input id="q" placeholder="Escribe tu pregunta…" style="margin:0" onkeydown="if(event.key=='Enter')ask()"><button class="btn alt" id="mic" onclick="voz()" title="Hablar">🎤</button><button class="btn" onclick="ask()">Enviar</button></div></div></section>
+<section id="facturas" class="hide"><h2 style="margin-top:0">Recepción de facturas</h2><div class="grid"><div class="card">
+<p style="margin-top:0;color:var(--mut)">Sube la factura (PDF o foto). Cauce revisa duplicados y marca lo dudoso para revisión humana.</p>
+<label>Proveedor</label><input id="fp" value="Química Industrial del Norte, S.A. de C.V."><label>Fecha de emisión</label><input id="ff" type="date" value="2026-10-28">
+<label>Total (MXN)</label><input id="ft" type="number" step="0.01" value="19850"><label>Archivo</label><input id="fa" type="file" accept=".pdf,image/*">
+<button class="btn" onclick="subir()">Analizar factura</button><div id="fr" style="margin-top:12px"></div></div>
+<div class="card" style="grid-column:span 2"><b>Últimas facturas</b><div class="tw" id="ftab"></div></div></div></section>
+<section id="entregas" class="hide"><h2 style="margin-top:0">Entregas y quejas</h2><div class="grid"><div class="card" style="grid-column:span 2"><b>Registro de entregas</b><div class="tw" id="etab"></div></div>
+<div class="card"><b>Registrar queja</b><label>Cliente</label><input id="qc" value="Hotel Costa Dorada, S.A. de C.V."><label>Sucursal</label><select id="qs"><option>Guadalajara</option><option>Zapopan</option><option selected>León</option><option>Querétaro</option><option>Aguascalientes</option></select>
+<label>Tema</label><textarea id="qt" rows="2">Entrega retrasada, ya es la 2.ª vez</textarea><button class="btn" onclick="queja()">Guardar queja</button><div id="qr" style="margin-top:10px"></div><div id="qlist" style="margin-top:10px;font-size:13px"></div></div></div></section>
+<section id="ia" class="hide"><h2 style="margin-top:0">IA responsable en Río Claro</h2><div class="grid" id="iag"></div>
+<div class="card" style="margin-top:12px" id="admin"></div></section>
+</main></div>
+<script>
+let T=null,P=[],D=null;const $=i=>document.getElementById(i),H={'Content-Type':'application/json'};
+const fmt=n=>'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:2});
+const tabs={resumen:'Resumen',asistente:'Asistente',facturas:'Facturas',entregas:'Entregas y quejas',ia:'IA responsable'};
+async function api(u,o={}){o.headers={...(o.headers||{}),'X-Token':T};const r=await fetch(u,o);if(!r.ok)throw new Error((await r.json()).detail||'Error');return r.json()}
+async function login(){try{const r=await fetch('/api/login',{method:'POST',headers:H,body:JSON.stringify({usuario:$('lu').value,clave:$('lc').value})});if(!r.ok)throw 0;const d=await r.json();T=d.token;P=d.perm;
+$('who').innerHTML=`<b>${d.nombre}</b><br><small style="opacity:.7">${d.rol}</small>`;$('out').classList.remove('hide');$('login').classList.add('hide');$('app').classList.remove('hide');
+$('nav').innerHTML=Object.entries(tabs).filter(([k])=>!(k=='facturas'&&!P.includes('fac'))&&!(k=='entregas'&&!P.includes('ent'))).map(([k,v])=>`<button id="b-${k}" onclick="go('${k}')">${v}</button>`).join('');
+const ch={toño:['¿Cuánto cloro nos queda?','¿Qué productos están bajos?'],laura:['¿Cuántas facturas vencidas hay?','¿Qué facturas están pendientes?'],mariana:['¿Cuáles entregas están retrasadas?','Entregas de Hotel Costa Dorada']};
+$('chips').innerHTML=(ch[d.usuario||$('lu').value.toLowerCase()]||['¿Qué productos están bajos?','¿Cuántas facturas vencidas hay?','¿Cuáles entregas están retrasadas?']).map(t=>`<span onclick="$('q').value='${t}';ask()">${t}</span>`).join('');
+await load();go('resumen')}catch(e){$('le').textContent='Usuario o clave incorrectos'}}
+$('out').onclick=()=>location.reload();
+async function load(){D=await api('/api/resumen');const r=D;
+$('resumen').innerHTML=`<div class="warn">Entorno demostrativo · datos ficticios de Distribuidora Río Claro (31 oct 2026)</div><div class="grid">
+<div class="card grn"><div class="l">Productos (SKU)</div><div class="k">${r.skus}</div></div><div class="card grn"><div class="l">Unidades en inventario</div><div class="k">${r.unidades.toLocaleString()}</div></div>
+<div class="card amb"><div class="l">Existencia baja</div><div class="k">${r.bajos}</div></div><div class="card red"><div class="l">Facturas vencidas</div><div class="k">${r.facturas_vencidas}</div><small>${fmt(r.vencido_mxn)}</small></div>
+<div class="card amb"><div class="l">Por pagar (pendientes)</div><div class="k" style="font-size:20px">${fmt(r.pendiente_mxn)}</div></div><div class="card red"><div class="l">Entregas retrasadas</div><div class="k">${r.entregas_retrasadas}</div><small>${r.prom_atraso} días de atraso prom.</small></div>
+<div class="card ${r.quejas_abiertas?'amb':'grn'}"><div class="l">Quejas abiertas</div><div class="k">${r.quejas_abiertas}</div></div></div>
+<h2>Inventario</h2><div class="card tw"><table><tr><th>SKU</th><th>Producto</th><th>Cantidad</th><th>Actualizado</th></tr>${r.inventario.map(i=>`<tr><td>${i.SKU}</td><td>${i.Producto}</td><td><span class="tag" style="${+i.Cantidad<60?'background:#fadbd8':''}">${i.Cantidad}</span></td><td>${i['Última actualización']}</td></tr>`).join('')}</table></div>`;
+$('ftab').innerHTML=`<table><tr><th>#</th><th>Proveedor</th><th>Total</th><th>Estado</th><th></th></tr>${r.facturas.slice().reverse().slice(0,12).map(f=>`<tr><td>${f.id}</td><td>${f.proveedor}</td><td>${fmt(f.total)}</td><td><span class="tag t-${f.estado.split(' ')[0]}">${f.estado}</span></td><td>${/Lista|Revisi/.test(f.estado)?`<button class="btn alt" style="padding:3px 10px" onclick="aprobar(${f.id})">Aprobar</button>`:''}</td></tr>`).join('')}</table>`;
+$('etab').innerHTML=`<table><tr><th>Cliente</th><th>Estado</th><th>Entrega</th><th>Atraso</th></tr>${r.entregas.map(e=>`<tr><td>${e['Cliente (nombre o razón social)']}</td><td><span class="tag t-${e['Estado de la entrega'].split(' ')[0]}">${e['Estado de la entrega']}</span></td><td>${e['Día de entrega']}</td><td>${e['Días de atraso']} d</td></tr>`).join('')}</table>`;
+$('qlist').innerHTML=r.quejas.map(q=>`<div>• <b>${q.folio}</b> ${q.cliente} — ${q.estado}</div>`).join('');
+const R=[['Equidad','Mismas reglas de consulta para todas las sucursales y clientes; sin atributos personales.'],['Confiabilidad','Si no hay dato, lo dice. Facturas borrosas pasan a revisión humana, no se inventa el total.'],['Privacidad','Nómina y contraseñas bloqueadas. Permisos por persona; secretos en variables de entorno / identidad administrada.'],['Inclusión','Texto y voz (🎤), diseño móvil para el personal de bodega.'],['Transparencia','Aviso de IA visible y fuente en cada respuesta.'],['Rendición de cuentas','Ningún pago se autoriza solo: aprueba Laura. Carlos puede apagar la IA.']];
+$('iag').innerHTML=R.map(([a,b])=>`<div class="card"><b>${a}</b><p style="margin:6px 0 0;color:var(--mut)">${b}</p></div>`).join('');
+$('admin').innerHTML=r.perm.includes('fac')&&$('who').textContent.includes('Carlos')?`<b>Panel de Carlos</b><p>Interruptor de la IA generativa (Foundry).</p><button class="btn" onclick="ia('on')">Encender</button> <button class="btn alt" onclick="ia('off')">Apagar</button> <span id="ias"></span>`:'<small style="color:var(--mut)">El interruptor de la IA lo opera soporte (Carlos).</small>'}
+function go(k){Object.keys(tabs).forEach(x=>{const s=$(x);if(s)s.classList.toggle('hide',x!=k);const b=$('b-'+x);if(b)b.classList.toggle('on',x==k)})}
+function add(c,t,x=''){const d=document.createElement('div');d.className='m '+c;d.innerHTML=t+(x?`<em>${x}</em>`:'');$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
+async function ask(){const q=$('q').value.trim();if(!q)return;$('q').value='';add('u',q);const w=add('b','…');
+try{const r=await api('/api/chat',{method:'POST',headers:H,body:JSON.stringify({texto:q})});w.innerHTML=r.respuesta+`<em>Fuente: ${r.fuente} · origen: ${r.origen} · ${r.ms} ms${r.revision_humana?' · ⚠️ requiere revisión humana':''}<br>${r.aviso}</em>`;if(window.hablar)speechSynthesis.speak(new SpeechSynthesisUtterance(r.respuesta.slice(0,300)))}catch(e){w.textContent=e.message}}
+function voz(){const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return alert('Tu navegador no soporta dictado. Usa Chrome o Edge.');const r=new S();r.lang='es-MX';window.hablar=true;$('mic').textContent='🔴';r.onresult=e=>{$('q').value=e.results[0][0].transcript;ask()};r.onend=()=>$('mic').textContent='🎤';r.start()}
+async function subir(){const f=$('fa').files[0];if(!f)return $('fr').innerHTML='<div class="warn">Selecciona un archivo.</div>';const fd=new FormData();fd.append('proveedor',$('fp').value);fd.append('fecha',$('ff').value);fd.append('total',$('ft').value);fd.append('archivo',f);
+try{const r=await api('/api/factura',{method:'POST',body:fd});$('fr').innerHTML=`<div class="warn"><b>${r.estado}</b><br>${r.mensaje}</div>`;load()}catch(e){$('fr').textContent=e.message}}
+async function aprobar(id){try{await api('/api/factura/'+id+'/aprobar',{method:'POST'});load()}catch(e){alert(e.message)}}
+async function queja(){const r=await api('/api/queja',{method:'POST',headers:H,body:JSON.stringify({cliente:$('qc').value,sucursal:$('qs').value,tema:$('qt').value})});$('qr').innerHTML=`<div class="warn">Queja <b>${r.folio}</b> registrada. Queda visible para todas las sucursales.</div>`;load()}
+async function ia(s){const r=await api('/api/admin/ia/'+s,{method:'POST'});$('ias').textContent=r.ia_activa?'IA encendida':'IA apagada'}
+</script></body></html>

@@ -1,0 +1,36 @@
+# Registro de facturas de proveedores – Río Claro
+
+Documento de ejemplo · Información ficticia · Moneda: MXN
+
+| Proveedor (razón social)                                    | Total (MXN) | Descripción                                                                | Estado    | Fecha de emisión | Fecha límite | Fecha de pago |
+| ----------------------------------------------------------- | ----------- | -------------------------------------------------------------------------- | --------- | ---------------- | ------------ | ------------- |
+| Química Industrial del Norte, S.A. de C.V.                  | $28,450.00  | Detergente líquido industrial para limpieza de hoteles y restaurantes.     | Pagado    | 2026-09-02       | 2026-10-02   | 2026-09-29    |
+| Papelera Mexicana del Pacífico, S.A. de C.V.                | $46,800.00  | Papel higiénico jumbo y toallas interdobladas para distribución comercial. | Pendiente | 2026-10-15       | 2026-11-14   |               |
+| Distribuidora de Higiene Integral, S. de R.L. de C.V.       | $18,275.50  | Jabón líquido antibacterial y dispensadores para instituciones educativas. | Vencido   | 2026-09-01       | 2026-10-01   |               |
+| Productos Sanitarios del Bajío, S.A. de C.V.                | $35,920.00  | Desinfectantes concentrados y sanitizantes para uso institucional.         | Pagado    | 2026-09-10       | 2026-10-10   | 2026-10-08    |
+| Envases y Empaques del Pacífico, S.A. de C.V.               | $12,640.00  | Bolsas para basura industriales de diferentes capacidades.                 | Pendiente | 2026-10-20       | 2026-11-19   |               |
+| Comercializadora de Químicos y Limpieza, S.A. de C.V.       | $52,300.00  | Cloro, desengrasantes y limpiadores multiusos para distribución a hoteles. | Vencido   | 2026-09-05       | 2026-10-05   |               |
+| Suministros Institucionales de México, S.A. de C.V.         | $21,750.00  | Escobas, trapeadores, jaladores y utensilios de limpieza.                  | Pagado    | 2026-09-18       | 2026-10-18   | 2026-10-16    |
+| Plásticos y Desechables del Noroeste, S.A. de C.V.          | $16,890.00  | Vasos, platos y contenedores desechables para restaurantes.                | Pendiente | 2026-10-22       | 2026-11-21   |               |
+| Higiene Profesional Empresarial, S. de R.L. de C.V.         | $39,500.00  | Productos de limpieza y cuidado personal para hoteles.                     | Vencido   | 2026-09-12       | 2026-10-12   |               |
+| Distribuciones Papel y Celulosa, S.A. de C.V.               | $31,200.00  | Servilletas, papel institucional y rollos para dispensadores.              | Pagado    | 2026-09-22       | 2026-10-22   | 2026-10-20    |
+| Equipos y Accesorios de Limpieza, S.A. de C.V.              | $24,680.00  | Carros de limpieza, cubetas exprimidoras y señalización de seguridad.      | Pendiente | 2026-10-25       | 2026-11-24   |               |
+| Químicos Especializados del Pacífico, S.A. de C.V.          | $63,450.00  | Desengrasantes industriales y detergentes para lavandería hotelera.        | Vencido   | 2026-09-08       | 2026-10-08   |               |
+| Comercializadora de Productos de Higiene, S.A. de C.V.      | $14,320.00  | Gel antibacterial, jabón para manos y papel sanitario.                     | Pagado    | 2026-09-25       | 2026-10-25   | 2026-10-24    |
+| Proveedora de Mantenimiento y Servicios, S. de R.L. de C.V. | $27,890.00  | Guantes, fibras abrasivas, cepillos y accesorios de mantenimiento.         | Pendiente | 2026-10-27       | 2026-11-26   |               |
+| Distribuidora Nacional de Insumos Comerciales, S.A. de C.V. | $48,750.00  | Suministro de productos de limpieza para las cinco sucursales.             | Vencido   | 2026-09-15       | 2026-10-15   |               |
+| Química Industrial del Norte, S.A. de C.V.                  | $19,850.00  | Hipoclorito de sodio y limpiador desinfectante para uso institucional.     | Pendiente | 2026-10-28       | 2026-11-27   |               |
+| Papelera Mexicana del Pacífico, S.A. de C.V.                | $37,600.00  | Papel higiénico y toallas de papel para clientes hoteleros.                | Vencido   | 2026-09-20       | 2026-10-20   |               |
+| Distribuidora de Higiene Integral, S. de R.L. de C.V.       | $22,450.00  | Dispensadores de jabón y repuestos para baños institucionales.             | Pagado    | 2026-10-01       | 2026-10-31   | 2026-10-29    |
+| Productos Sanitarios del Bajío, S.A. de C.V.                | $41,780.00  | Sanitizantes y desinfectantes para superficies de contacto.                | Pendiente | 2026-10-29       | 2026-11-28   |               |
+| Envases y Empaques del Pacífico, S.A. de C.V.               | $9,850.00   | Bolsas de polietileno y empaques para productos de limpieza.               | Vencido   | 2026-09-25       | 2026-10-25   |               |
+| Comercializadora de Químicos y Limpieza, S.A. de C.V.       | $56,200.00  | Detergente industrial, suavizante y productos para lavandería.             | Pendiente | 2026-10-30       | 2026-11-29   |               |
+| Suministros Institucionales de México, S.A. de C.V.         | $17,430.00  | Señalización de seguridad, guantes y equipo de protección.                 | Pagado    | 2026-10-03       | 2026-10-28   | 2026-10-27    |
+| Plásticos y Desechables del Noroeste, S.A. de C.V.          | $13,760.00  | Contenedores desechables y bolsas para manejo de residuos.                 | Pendiente | 2026-10-31       | 2026-11-30   |               |
+| Higiene Profesional Empresarial, S. de R.L. de C.V.         | $44,900.00  | Insumos de higiene personal y limpieza para hoteles y restaurantes.        | Vencido   | 2026-09-18       | 2026-10-18   |               |
+| Distribuciones Papel y Celulosa, S.A. de C.V.               | $29,350.00  | Papel toalla, servilletas y papel higiénico institucional.                 | Pagado    | 2026-10-05       | 2026-10-30   | 2026-10-28    |
+| Equipos y Accesorios de Limpieza, S.A. de C.V.              | $33,680.00  | Equipamiento y accesorios para limpieza de pisos comerciales.              | Pendiente | 2026-10-30       | 2026-11-29   |               |
+| Químicos Especializados del Pacífico, S.A. de C.V.          | $71,250.00  | Productos químicos para limpieza profunda y mantenimiento hotelero.        | Vencido   | 2026-09-10       | 2026-10-10   |               |
+| Comercializadora de Productos de Higiene, S.A. de C.V.      | $26,540.00  | Jabón líquido, gel antibacterial y productos de higiene personal.          | Pendiente | 2026-10-29       | 2026-11-28   |               |
+| Proveedora de Mantenimiento y Servicios, S. de R.L. de C.V. | $15,920.00  | Herramientas, fibras, cepillos y materiales de mantenimiento.              | Pagado    | 2026-10-08       | 2026-10-30   | 2026-10-29    |
+| Distribuidora Nacional de Insumos Comerciales, S.A. de C.V. | $58,600.00  | Pedido consolidado de productos de limpieza para distribución regional.    | Pendiente | 2026-10-31       | 2026-11-30   |               |
