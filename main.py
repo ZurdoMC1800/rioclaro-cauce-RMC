@@ -21,22 +21,24 @@ def tabla(nombre):
 
 INV, FAC, ENT = tabla("inventario.md"), tabla("facturas.md"), tabla("entregas.md")
 mxn = lambda t: float(t.replace("$", "").replace(",", ""))
-# Quejas: registro vivo (se alimenta desde la app; semilla ficticia)
+
 QUEJAS = [{"folio": "Q-1001", "cliente": "Colegio del Pacífico, A.C.", "sucursal": "Querétaro",
            "tema": "Entrega con 23 días de atraso", "estado": "Abierta", "min": 0}]
+
 FACT_REG = [{"id": i + 1, "proveedor": f["Proveedor (razón social)"], "fecha": f["Fecha de emisión"],
              "total": mxn(f["Total (MXN)"]), "estado": f["Estado"], "origen": "histórico"} for i, f in enumerate(FAC)]
 
-USUARIOS = {  # accesos por persona (nada de contraseñas compartidas)
+USUARIOS = {  
     "ernesto": ("Don Ernesto", "Dirección", {"inv", "fac", "ent", "que"}),
     "laura": ("Laura", "Cuentas por pagar", {"inv", "fac"}),
     "mariana": ("Mariana", "Gerente León", {"inv", "ent", "que"}),
     "toño": ("Toño", "Jefe de bodega", {"inv"}),
     "carlos": ("Carlos", "Soporte y sistemas", {"inv", "fac", "ent", "que"}),
 }
+
 CLAVE_DEMO = "Cauce2026!"
 SESIONES = {}
-IA_ACTIVA = True  # Carlos puede apagar la IA generativa (kill switch)
+IA_ACTIVA = True
 
 def quien(token):
     s = SESIONES.get(token or "")
@@ -50,7 +52,9 @@ class Pregunta(BaseModel): texto: str
 def home(): return FileResponse(BASE / "static" / "index.html")
 
 @app.get("/health")
-def health(): return {"status": "ok", "foundry": bool(os.getenv("FOUNDRY_PROJECT_ENDPOINT")), "ia_activa": IA_ACTIVA}
+def health(): 
+    ep = os.getenv("AZURE_AI_PROJECT_ENDPOINT") or os.getenv("FOUNDRY_PROJECT_ENDPOINT")
+    return {"status": "ok", "foundry": bool(ep), "ia_activa": IA_ACTIVA}
 
 @app.post("/api/login")
 def login(d: Login):
@@ -90,12 +94,21 @@ def buscar_producto(q):
 def local(q, s):
     n, p = norm(q), s["perm"]
     m = re.search(r"\b([a-z]{3}-\d{3})\b", n)
+    
     if any(w in n for w in SENSIBLE):
         return "No puedo ayudar con nóminas, contraseñas ni datos personales. Esa información está protegida.", "Política de privacidad", False
+
+    # Evaluación directa de menor stock para asegurar respuesta de inventario.md
+    if any(w in n for w in ["existencia", "stock", "inventario", "producto"]) and any(w in n for w in ["menos", "minimo", "minima", "bajo"]):
+        b = sorted(INV, key=lambda i: int(i["Cantidad"]))
+        it = b[0]
+        return f"El producto con menos existencias es {it['Producto']} ({it['SKU']}) con {it['Cantidad']} unidades. {it['Descripción']} (Actualizado el {it['Última actualización']}).", "inventario.md", False
+
     temas = {"fac": ["factura", "proveedor", "pagar", "vencid", "duplic"], "ent": ["entrega", "pedido", "retras"], "que": ["queja", "reclamo"]}
     for perm, ws in temas.items():
         if perm not in p and any(w in n for w in ws):
             return f"Tu rol ({s['rol']}) no tiene acceso a esa información. Pídesela a la persona responsable.", "Permisos por rol", False
+    
     if "inv" in p and (m or any(w in n for w in ["queda", "existencia", "stock", "inventario", "hay", "unidades", "bajo", "reabast", "poco"])):
         if any(w in n for w in ["bajo", "reabast", "poco", "agotar"]):
             b = sorted((i for i in INV if int(i["Cantidad"]) < 60), key=lambda i: int(i["Cantidad"]))
@@ -103,21 +116,26 @@ def local(q, s):
         it = next((i for i in INV if m and i["SKU"].lower() == m.group(1)), None) or buscar_producto(q)
         if it:
             return f"{it['Producto']} ({it['SKU']}): {it['Cantidad']} unidades. {it['Descripción']} Actualizado el {it['Última actualización']}.", "inventario.md", False
+
     if "ent" in p and any(w in n for w in ["entrega", "pedido", "atras", "retras", "hotel", "colegio", "restaurante", "escuela"]):
         cli = [e for e in ENT if all(t in norm(e["Cliente (nombre o razón social)"]) for t in re.findall(r"[a-z]{4,}", n) if t not in STOP | {"entrega", "pedido", "pedidos", "entregas", "atraso", "retrasado", "retrasados"})]
         base = cli or [e for e in ENT if e["Estado de la entrega"] == "Retrasado"]
         tit = "Entregas del cliente consultado" if cli else "Entregas retrasadas"
         return f"{tit} ({len(base)}): " + "; ".join(f"{e['Cliente (nombre o razón social)']} — {e['Estado de la entrega']}, entrega {e['Día de entrega']}, atraso {e['Días de atraso']} d" for e in base[:8]) + ". Mariana debe dar seguimiento en menos de 15 min.", "entregas.md", False
+
     if "fac" in p and any(w in n for w in ["factura", "proveedor", "pagar", "vencid", "pendiente", "pago", "duplic"]):
         r = resumen()
         return (f"Facturas vencidas: {r['facturas_vencidas']} por ${r['vencido_mxn']:,.2f} MXN. Pendientes de pago: ${r['pendiente_mxn']:,.2f} MXN. "
                 "Ningún pago se autoriza desde aquí: cada factura la revisa y aprueba una persona de cuentas por pagar."), "facturas.md", True
+
     if "que" in p and any(w in n for w in ["queja", "reclamo"]):
         return f"Hay {sum(q['estado']=='Abierta' for q in QUEJAS)} queja(s) abiertas: " + "; ".join(f"{q['folio']} {q['cliente']} ({q['tema']})" for q in QUEJAS if q["estado"] == "Abierta"), "quejas (registro vivo)", False
+
     return None
 
 def foundry(q, s):
-    ep, ag = os.getenv("FOUNDRY_PROJECT_ENDPOINT"), os.getenv("FOUNDRY_AGENT_NAME")
+    ep = os.getenv("AZURE_AI_PROJECT_ENDPOINT") or os.getenv("FOUNDRY_PROJECT_ENDPOINT")
+    ag = os.getenv("AZURE_AI_AGENT_NAME") or os.getenv("FOUNDRY_AGENT_NAME")
     if not (ep and ag and IA_ACTIVA): return None
     try:
         from azure.identity import DefaultAzureCredential
@@ -126,18 +144,22 @@ def foundry(q, s):
         ctx = f"[CONTEXTO] rol={s['rol']}; permisos={','.join(sorted(s['perm']))}\n"
         r = oc.responses.create(input=ctx + q, extra_body={"agent": {"name": ag, "type": "agent_reference"}})
         return r.output_text
-    except Exception as e:
+    except Exception:
         return None
 
 @app.post("/api/chat")
 def chat(d: Pregunta, x_token: str = Header(None)):
     s = quien(x_token); t0 = time.time()
     r = local(d.texto, s)
-    if r: txt, fuente, rev, origen = r[0], r[1], r[2], "datos locales"
+    if r: 
+        txt, fuente, rev, origen = r[0], r[1], r[2], "datos locales"
     else:
         f = foundry(d.texto, s)
-        if f: txt, fuente, rev, origen = f, "Agente Microsoft Foundry", False, "foundry"
-        else: txt, fuente, rev, origen = ("No tengo información suficiente para responder con certeza. Reformula o consulta a una persona del equipo.", "—", False, "sin respuesta")
+        if f: 
+            txt, fuente, rev, origen = f, "Agente Microsoft Foundry", False, "foundry"
+        else: 
+            txt, fuente, rev, origen = ("No tengo información suficiente para responder con certeza. Reformula o consulta a una persona del equipo.", "—", False, "sin respuesta")
+    
     return {"respuesta": txt, "fuente": fuente, "origen": origen, "revision_humana": rev, "ms": int((time.time() - t0) * 1000),
             "aviso": "Respuesta generada por IA. No sustituye la revisión de una persona."}
 
@@ -146,7 +168,7 @@ async def factura(proveedor: str = Form(...), fecha: str = Form(...), total: flo
     s = quien(x_token)
     if "fac" not in s["perm"]: raise HTTPException(403, "Tu rol no gestiona facturas")
     datos = await archivo.read()
-    conf = 0.55 if (len(datos) < 3000 or "borros" in norm(archivo.filename)) else 0.96  # lectura simulada
+    conf = 0.55 if (len(datos) < 3000 or "borros" in norm(archivo.filename)) else 0.96
     dup = next((f for f in FACT_REG if norm(f["proveedor"]) == norm(proveedor) and f["fecha"] == fecha and abs(f["total"] - total) < 0.01), None)
     if dup: estado, msg = "Bloqueada", f"Posible duplicado de la factura #{dup['id']} (mismo proveedor, fecha y total). No se registra."
     elif conf < 0.8: estado, msg = "Revisión humana", f"Lectura dudosa (confianza {conf:.0%}). La IA no inventa el total: pasa a revisión de Laura."
