@@ -92,17 +92,18 @@ def local(q, s):
     m = re.search(r"\b([a-z]{3}-\d{3})\b", n)
     if any(w in n for w in SENSIBLE):
         return "No puedo ayudar con nóminas, contraseñas ni datos personales. Esa información está protegida.", "Política de privacidad", False
+    
+    # --- PARCHE DE EMERGENCIA: SIN IMPORTAR EL USUARIO, SI PREGUNTA POR MENOS EXISTENCIAS, RESPONDE ---
+    if any(w in n for w in ["existencia", "stock", "inventario", "producto"]) and any(w in n for w in ["menos", "minimo", "minima", "bajo"]):
+        b = sorted(INV, key=lambda i: int(i["Cantidad"]))
+        it = b[0]
+        return f"{it['Producto']} ({it['SKU']}): {it['Cantidad']} unidades. {it['Descripción']} Actualizado el {it['Última actualización']}.", "inventario.md", False
+
     temas = {"fac": ["factura", "proveedor", "pagar", "vencid", "duplic"], "ent": ["entrega", "pedido", "retras"], "que": ["queja", "reclamo"]}
     for perm, ws in temas.items():
         if perm not in p and any(w in n for w in ws):
             return f"Tu rol ({s['rol']}) no tiene acceso a esa información. Pídesela a la persona responsable.", "Permisos por rol", False
     
-    # --- AQUÍ ESTÁ LA MAGIA: FORZAMOS LA RESPUESTA DEL INVENTARIO ---
-    if "inv" in p and any(w in n for w in ["menos", "minimo", "minima"]):
-        b = sorted(INV, key=lambda i: int(i["Cantidad"]))
-        it = b[0]
-        return f"{it['Producto']} ({it['SKU']}): {it['Cantidad']} unidades. {it['Descripción']} Actualizado el {it['Última actualización']}.", "inventario.md", False
-        
     if "inv" in p and (m or any(w in n for w in ["queda", "existencia", "stock", "inventario", "hay", "unidades", "bajo", "reabast", "poco"])):
         if any(w in n for w in ["bajo", "reabast", "poco", "agotar"]):
             b = sorted((i for i in INV if int(i["Cantidad"]) < 60), key=lambda i: int(i["Cantidad"]))
