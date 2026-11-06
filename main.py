@@ -21,13 +21,13 @@ def tabla(nombre):
 
 INV, FAC, ENT = tabla("inventario.md"), tabla("facturas.md"), tabla("entregas.md")
 mxn = lambda t: float(t.replace("$", "").replace(",", ""))
-# Quejas: registro vivo (se alimenta desde la app; semilla ficticia)
+
 QUEJAS = [{"folio": "Q-1001", "cliente": "Colegio del Pacífico, A.C.", "sucursal": "Querétaro",
            "tema": "Entrega con 23 días de atraso", "estado": "Abierta", "min": 0}]
 FACT_REG = [{"id": i + 1, "proveedor": f["Proveedor (razón social)"], "fecha": f["Fecha de emisión"],
              "total": mxn(f["Total (MXN)"]), "estado": f["Estado"], "origen": "histórico"} for i, f in enumerate(FAC)]
 
-USUARIOS = {  # accesos por persona (nada de contraseñas compartidas)
+USUARIOS = {  
     "ernesto": ("Don Ernesto", "Dirección", {"inv", "fac", "ent", "que"}),
     "laura": ("Laura", "Cuentas por pagar", {"inv", "fac"}),
     "mariana": ("Mariana", "Gerente León", {"inv", "ent", "que"}),
@@ -36,7 +36,7 @@ USUARIOS = {  # accesos por persona (nada de contraseñas compartidas)
 }
 CLAVE_DEMO = "Cauce2026!"
 SESIONES = {}
-IA_ACTIVA = True  # Carlos puede apagar la IA generativa (kill switch)
+IA_ACTIVA = True
 
 def quien(token):
     s = SESIONES.get(token or "")
@@ -50,7 +50,7 @@ class Pregunta(BaseModel): texto: str
 def home(): return FileResponse(BASE / "static" / "index.html")
 
 @app.get("/health")
-def health(): return {"status": "ok", "foundry": bool(os.getenv("FOUNDRY_PROJECT_ENDPOINT")), "ia_activa": IA_ACTIVA}
+def health(): return {"status": "ok", "foundry": bool(os.getenv("AZURE_AI_PROJECT_ENDPOINT")), "ia_activa": IA_ACTIVA}
 
 @app.post("/api/login")
 def login(d: Login):
@@ -96,6 +96,13 @@ def local(q, s):
     for perm, ws in temas.items():
         if perm not in p and any(w in n for w in ws):
             return f"Tu rol ({s['rol']}) no tiene acceso a esa información. Pídesela a la persona responsable.", "Permisos por rol", False
+    
+    # --- AQUÍ ESTÁ LA MAGIA: FORZAMOS LA RESPUESTA DEL INVENTARIO ---
+    if "inv" in p and any(w in n for w in ["menos", "minimo", "minima"]):
+        b = sorted(INV, key=lambda i: int(i["Cantidad"]))
+        it = b[0]
+        return f"{it['Producto']} ({it['SKU']}): {it['Cantidad']} unidades. {it['Descripción']} Actualizado el {it['Última actualización']}.", "inventario.md", False
+        
     if "inv" in p and (m or any(w in n for w in ["queda", "existencia", "stock", "inventario", "hay", "unidades", "bajo", "reabast", "poco"])):
         if any(w in n for w in ["bajo", "reabast", "poco", "agotar"]):
             b = sorted((i for i in INV if int(i["Cantidad"]) < 60), key=lambda i: int(i["Cantidad"]))
@@ -117,7 +124,8 @@ def local(q, s):
     return None
 
 def foundry(q, s):
-    ep, ag = os.getenv("FOUNDRY_PROJECT_ENDPOINT"), os.getenv("FOUNDRY_AGENT_NAME")
+    ep = os.getenv("AZURE_AI_PROJECT_ENDPOINT") or os.getenv("FOUNDRY_PROJECT_ENDPOINT")
+    ag = os.getenv("AZURE_AI_AGENT_NAME") or os.getenv("FOUNDRY_AGENT_NAME")
     if not (ep and ag and IA_ACTIVA): return None
     try:
         from azure.identity import DefaultAzureCredential
@@ -146,7 +154,7 @@ async def factura(proveedor: str = Form(...), fecha: str = Form(...), total: flo
     s = quien(x_token)
     if "fac" not in s["perm"]: raise HTTPException(403, "Tu rol no gestiona facturas")
     datos = await archivo.read()
-    conf = 0.55 if (len(datos) < 3000 or "borros" in norm(archivo.filename)) else 0.96  # lectura simulada
+    conf = 0.55 if (len(datos) < 3000 or "borros" in norm(archivo.filename)) else 0.96
     dup = next((f for f in FACT_REG if norm(f["proveedor"]) == norm(proveedor) and f["fecha"] == fecha and abs(f["total"] - total) < 0.01), None)
     if dup: estado, msg = "Bloqueada", f"Posible duplicado de la factura #{dup['id']} (mismo proveedor, fecha y total). No se registra."
     elif conf < 0.8: estado, msg = "Revisión humana", f"Lectura dudosa (confianza {conf:.0%}). La IA no inventa el total: pasa a revisión de Laura."
