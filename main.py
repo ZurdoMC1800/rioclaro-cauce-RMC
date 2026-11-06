@@ -117,16 +117,30 @@ def local(q, s):
     return None
 
 def foundry(q, s):
-    ep, ag = os.getenv("FOUNDRY_PROJECT_ENDPOINT"), os.getenv("FOUNDRY_AGENT_NAME")
+    # AQUI ESTABA EL ERROR: Buscamos los nombres exactos de las variables que configuramos en Azure
+    ep = os.getenv("AZURE_AI_PROJECT_ENDPOINT") or os.getenv("FOUNDRY_PROJECT_ENDPOINT")
+    ag = os.getenv("AZURE_AI_AGENT_NAME") or os.getenv("FOUNDRY_AGENT_NAME")
+    
     if not (ep and ag and IA_ACTIVA): return None
+    
     try:
         from azure.identity import DefaultAzureCredential
         from azure.ai.projects import AIProjectClient
+        
         oc = AIProjectClient(endpoint=ep, credential=DefaultAzureCredential()).get_openai_client()
         ctx = f"[CONTEXTO] rol={s['rol']}; permisos={','.join(sorted(s['perm']))}\n"
-        r = oc.responses.create(input=ctx + q, extra_body={"agent": {"name": ag, "type": "agent_reference"}})
+        
+        # AQUI ESTA LA MAGIA: Le decimos a Foundry que OBLIGATORIAMENTE busque en los archivos
+        r = oc.responses.create(
+            input=ctx + q, 
+            extra_body={
+                "agent": {"name": ag, "type": "agent_reference"},
+                "tool_choice": {"type": "file_search"} # <--- ESTO FUERZA LA BÚSQUEDA
+            }
+        )
         return r.output_text
     except Exception as e:
+        print(f"Error en Foundry: {e}") # Esto te ayudará a ver si falla algo en la consola
         return None
 
 @app.post("/api/chat")
